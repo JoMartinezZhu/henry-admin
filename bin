@@ -1,0 +1,94 @@
+#!/usr/bin/env node
+
+const program = require("commander");
+
+const packageJSON = require("./package.json");
+const defaultOptionConfig = {
+  host: "localhost",
+  backend: "t1.learnta.cn",
+  target: "t1",
+  port: "8080",
+  https: "false",
+  mock: "false",
+  debug: "false"
+};
+
+const defaultCommandList = {
+  dev: "development",
+  prod: "production"
+};
+
+const VALUE_MAP = {
+  true: true,
+  false: false,
+  undefined: false
+};
+
+program
+  .version(packageJSON.version)
+  .usage("./bin [options] <command>")
+  .option("--host <host>", "指定本地开发用的host，默认是localhost")
+  .option(
+    "-b, --backend <backend>",
+    "指定后台接口所在的服务器的域名或ip地址，默认是t1.learnta.cn"
+  )
+  .option("-t, --target <target>", "指定打包环境，默认是t1")
+  .option("--port <port>", "指定开发用的端口号")
+  .option("--hot <hot>", "是否启用模块热更新功能，默认是启用")
+  .option("--https <https>", "是否启动Https，默认false")
+  .option("-m, --mock <mock>", "指定是否使用mock，默认是false")
+  .option("--debug <debug>", "是否开启移动端debug模式，默认是false");
+
+program
+  .command("dev")
+  .description("开发者模式")
+  .action(devCmd);
+
+program
+  .command("build")
+  .description("构建模式")
+  .action(buildCmd);
+
+program.parse(process.argv);
+
+// console.log(process.argv);
+
+function devCmd() {
+  setEnvVariable();
+  process.env.ENV = defaultCommandList.dev;
+  process.env.NODE_ENV = defaultCommandList.dev;
+  Object.keys(defaultOptionConfig).forEach(option => {
+    console.log(
+      `${option}:${process.env[option.toUpperCase()]}---${typeof process.env[
+        option.toUpperCase()
+      ]}`
+    );
+  });
+
+  //   execSync("npm run dev", { stdio: "inherit" });
+}
+
+function buildCmd() {
+  setEnvVariable();
+  process.env.ENV = defaultCommandList.prod;
+  process.env.NODE_ENV = defaultCommandList.prod;
+
+  // handleStaticSrc('src/static/');
+
+  // execSync('npm run build:webpack', { stdio: 'inherit' });
+
+  Object.keys(defaultOptionConfig).forEach(option => {
+    console.log(
+      `${option}:${process.env[option.toUpperCase()]}---${typeof process.env[
+        option.toUpperCase()
+      ]}`
+    );
+  });
+}
+
+function setEnvVariable() {
+  Object.keys(defaultOptionConfig).forEach(option => {
+    process.env[option.toUpperCase()] =
+      VALUE_MAP[program[option]] || defaultOptionConfig[option];
+  });
+}
